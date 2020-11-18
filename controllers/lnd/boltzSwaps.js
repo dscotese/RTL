@@ -3,8 +3,8 @@ var fs = require('fs');
 var common = require('../../common');
 var logger = require('../logger');
 var EventSource = require('eventsource');
-var bitcoinjs = require('bitcoinjs-lib');
-var boltzCore = require('boltz-core');
+// var bitcoinjs = require('bitcoinjs-lib');
+// var boltzCore = require('boltz-core');
 var streamMap = {};
 let network = undefined;
 const SWAP_STATUS = 'swapstatus';
@@ -14,9 +14,6 @@ const GET_SWAP_TRANSACTION = 'getswaptransaction';
 const BROADCAST_TRANSACTION = 'broadcasttransaction';
 const currency = 'BTC';
 const swapExpiredSec = 86400000; // one day
-const infoController = require("../../controllers/lnd/getInfo");
-
-
 
 function getBoltzServerUrl() {
   if(common.selectedNode.boltz_server_url) {

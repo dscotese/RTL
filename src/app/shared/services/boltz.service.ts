@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { throwError, forkJoin } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import { ECPair, crypto } from 'bitcoinjs-lib';
+// import { ECPair, crypto } from 'bitcoinjs-lib';
 
 import { boltzEnvironment, environment, API_URL } from '../../../environments/environment';
 import { CurrentyTypeSwapEnum } from '../../shared/services/consts-enums-functions';
@@ -34,12 +34,12 @@ export class BoltzService {
   }
 
   getSwapInfo() {
-    const keys = ECPair.makeRandom({ });
-    return {
-      preimage: this.randomBytes(32),
-      publicKey: keys.publicKey.toString('hex'),
-      privateKey: keys.privateKey.toString('hex'),
-    }
+    // const keys = ECPair.makeRandom({ });
+    // return {
+    //   preimage: this.randomBytes(32),
+    //   publicKey: keys.publicKey.toString('hex'),
+    //   privateKey: keys.privateKey.toString('hex'),
+    // };
   }
 
   onSwap({boltzServerUrl, direction, invoiceAmount, swapInfo, paymentRequest}) {
@@ -52,7 +52,7 @@ export class BoltzService {
         pairId: CurrentyTypeSwapEnum.BTC_BTC,
         orderSide: 'buy',
         invoiceAmount,
-        preimageHash: crypto.sha256(preimage).toString('hex'),
+        // preimageHash: crypto.sha256(preimage).toString('hex'),
         claimPublicKey: publicKey
       };
       return this.httpClient.post(swapUrl, requestBody).pipe(catchError(err => this.handleErrorWithoutAlert('Withdrawal', err)));
@@ -69,9 +69,7 @@ export class BoltzService {
   }
 
   randomBytes(size) {
-    const bytes = Buffer.allocUnsafe(size);
-    window.crypto.getRandomValues(bytes);
-    return bytes;
+    return window.crypto.getRandomValues(new Uint8Array(new ArrayBuffer(size)));
   };
 
 

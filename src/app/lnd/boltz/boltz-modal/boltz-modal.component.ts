@@ -62,7 +62,6 @@ export class BoltzModalComponent implements OnInit, AfterViewInit, OnDestroy {
   addressFormGroup: FormGroup;
   statusFormGroup: FormGroup;  
   private unSubs: Array<Subject<void>> = [new Subject(), new Subject(), new Subject(), new Subject(), new Subject(), new Subject()];
-  private targetConf = 2;
   public addressTypes = ADDRESS_TYPES;
   public selectedAddressType: AddressType = ADDRESS_TYPES[0];
 
@@ -102,11 +101,11 @@ export class BoltzModalComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onFormValueChanges() {
-    this.inputFormGroup.valueChanges.pipe(takeUntil(this.unSubs[4])).subscribe(changedValues => {
+    this.inputFormGroup.valueChanges.pipe(takeUntil(this.unSubs[2])).subscribe(changedValues => {
       this.inputFormGroup.setErrors({'Invalid': true});
     });
     if (this.direction === SwapTypeEnum.WITHDRAWAL) {
-      this.addressFormGroup.valueChanges.pipe(takeUntil(this.unSubs[5])).subscribe(changedValues => {
+      this.addressFormGroup.valueChanges.pipe(takeUntil(this.unSubs[3])).subscribe(changedValues => {
         this.addressFormGroup.setErrors({'Invalid': true});
       });
     }
@@ -126,61 +125,60 @@ export class BoltzModalComponent implements OnInit, AfterViewInit, OnDestroy {
     this.addressFormGroup.setErrors({'Invalid': true});
   }
 
-  // refactor
-
   onSwap() {
     if(!this.inputFormGroup.controls.amount.value || this.inputFormGroup.controls.amount.value < this.minQuote.amount || this.inputFormGroup.controls.amount.value > this.maxQuote.amount || !this.inputFormGroup.controls.sweepConfTarget.value || this.inputFormGroup.controls.sweepConfTarget.value < 2 || (!this.inputFormGroup.controls.routingFeePercent.value || this.inputFormGroup.controls.routingFeePercent.value < 0 || this.inputFormGroup.controls.routingFeePercent.value > this.maxRoutingFeePercentage) || (this.direction === SwapTypeEnum.WITHDRAWAL && this.addressFormGroup.controls.addressType.value === 'external' && (!this.addressFormGroup.controls.address.value || this.addressFormGroup.controls.address.value.trim() === ''))) { return true; }
     this.flgEditable = false;
     this.stepper.selected.stepControl.setErrors(null);
     this.stepper.next();
     const swapInfo = this.boltzService.getSwapInfo();
-    this.boltzService.getBoltzServerUrl()
-    .subscribe(boltzServerUrl => {
-      if(this.direction === SwapTypeEnum.DEPOSIT) {
-        this.store.dispatch(new LNDActions.SaveNewInvoice({
-          memo: 'Sent to BTC Lightning',
-          invoiceValue: this.inputFormGroup.controls.amount.value, 
-          expiry: 3600, 
-          private: false,
-          pageSize: 10,
-          openModal: false
-        }));
-        this.actions$.pipe(takeUntil(this.unSubs[1]),
-        filter((action) => action.type === LNDActions.NEWLY_SAVED_INVOICE_LND))
-        .subscribe((action: LNDActions.NewlySavedInvoice) => {
-          this.boltzService.onSwap({
-            boltzServerUrl,
-            direction: this.direction,
-            invoiceAmount: this.inputFormGroup.controls.amount.value,
-            swapInfo,
-            paymentRequest: action.payload.paymentRequest
-          }).subscribe((swapStatus: any) => {
-            this.saveSwapFile({
-              swapStatus,
-              costServer: this.quote.swap_fee_sat,
-              costOnchain: this.quote.htlc_publish_fee_sat,
-              swapInfo,
-            });
-            this.loopStatus = {
-              id_bytes: swapStatus.id,
-              htlc_address: swapStatus.address
-            };
-            this.store.dispatch(new LNDActions.FetchBoltzSwaps());
-          })
-        });
-      } else {
-        if(this.addressFormGroup.controls.address.value !== '') {
-          this.processWithdrawalSwap(boltzServerUrl, swapInfo, this.addressFormGroup.controls.address.value);
-        } else {
-          this.store.dispatch(new LNDActions.GetNewAddress(this.selectedAddressType));
-          this.lndEffects.setNewAddress
-          .pipe(take(1))
-          .subscribe(newAddress => {
-            this.processWithdrawalSwap(boltzServerUrl, swapInfo, newAddress);
-          });
-        }
-      }
-    })
+    // this.boltzService.getBoltzServerUrl()
+    // .pipe(takeUntil(this.unSubs[4]))
+    // .subscribe(boltzServerUrl => {
+    //   if(this.direction === SwapTypeEnum.DEPOSIT) {
+    //     this.store.dispatch(new LNDActions.SaveNewInvoice({
+    //       memo: 'Sent to BTC Lightning',
+    //       invoiceValue: this.inputFormGroup.controls.amount.value, 
+    //       expiry: 3600, 
+    //       private: false,
+    //       pageSize: 10,
+    //       openModal: false
+    //     }));
+    //     this.actions$.pipe(takeUntil(this.unSubs[1]),
+    //     filter((action) => action.type === LNDActions.NEWLY_SAVED_INVOICE_LND))
+    //     .subscribe((action: LNDActions.NewlySavedInvoice) => {
+    //       this.boltzService.onSwap({
+    //         boltzServerUrl,
+    //         direction: this.direction,
+    //         invoiceAmount: this.inputFormGroup.controls.amount.value,
+    //         swapInfo,
+    //         paymentRequest: action.payload.paymentRequest
+    //       }).subscribe((swapStatus: any) => {
+    //         this.saveSwapFile({
+    //           swapStatus,
+    //           costServer: this.quote.swap_fee_sat,
+    //           costOnchain: this.quote.htlc_publish_fee_sat,
+    //           swapInfo,
+    //         });
+    //         this.loopStatus = {
+    //           id_bytes: swapStatus.id,
+    //           htlc_address: swapStatus.address
+    //         };
+    //         this.store.dispatch(new LNDActions.FetchBoltzSwaps());
+    //       })
+    //     });
+    //   } else {
+    //     if(this.addressFormGroup.controls.address.value !== '') {
+    //       this.processWithdrawalSwap(boltzServerUrl, swapInfo, this.addressFormGroup.controls.address.value);
+    //     } else {
+    //       this.store.dispatch(new LNDActions.GetNewAddress(this.selectedAddressType));
+    //       this.lndEffects.setNewAddress
+    //       .pipe(take(1))
+    //       .subscribe(newAddress => {
+    //         this.processWithdrawalSwap(boltzServerUrl, swapInfo, newAddress);
+    //       });
+    //     }
+    //   }
+    // });
   }
 
   processWithdrawalSwap(boltzServerUrl, swapInfo, newAddress) {
