@@ -99,7 +99,7 @@ export class ECLChannelOpenTableComponent implements OnInit, AfterViewInit, OnDe
     if (channelToUpdate !== 'all' && channelToUpdate.state !== 'NORMAL') {
       return;
     }
-    const titleMsg = channelToUpdate === 'all' ? 'Update fee policy for selected/all channels' : 'Update fee policy for Channel: ' + channelToUpdate.channelId;
+    const titleMsg = channelToUpdate === 'all' ? 'Update fee policy for selected/all nodes' : 'Update fee policy for node: ' + channelToUpdate.nodeId;
     const confirmationMsg = [];
     this.store.dispatch(new RTLActions.OpenConfirmation({ data: {
       type: AlertTypeEnum.CONFIRM,
@@ -121,15 +121,15 @@ export class ECLChannelOpenTableComponent implements OnInit, AfterViewInit, OnDe
           const base_fee = confirmRes[0].inputValue;
           const fee_rate = confirmRes[1].inputValue;
           let updateRequestPayload = null;
-          let channel_ids = '';
+          let node_ids = '';
           if (channelToUpdate === 'all') {
             this.activeChannels.forEach((channel) => {
-              channel_ids = channel_ids + ',' + channel.channelId;
+              node_ids = node_ids + ',' + channel.nodeId;
             });
-            channel_ids = channel_ids.substring(1);
-            updateRequestPayload = { baseFeeMsat: base_fee, feeRate: fee_rate, channelIds: channel_ids };
+            node_ids = node_ids.substring(1);
+            updateRequestPayload = { baseFeeMsat: base_fee, feeRate: fee_rate, nodeIds: node_ids };
           } else {
-            updateRequestPayload = { baseFeeMsat: base_fee, feeRate: fee_rate, channelId: channelToUpdate.channelId };
+            updateRequestPayload = { baseFeeMsat: base_fee, feeRate: fee_rate, nodeId: channelToUpdate.nodeId };
           }
           this.store.dispatch(new ECLActions.UpdateChannels(updateRequestPayload));
         }
